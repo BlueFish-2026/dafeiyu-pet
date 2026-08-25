@@ -884,6 +884,41 @@ class PetWindow(QWidget):
         except Exception as e:
             print("天气错误:", repr(e))
             self.say("天气获取失败")
+
+    def _check_balance(self):
+        key = self.cfg.get("ds_api_key", "")
+        if not key:
+            self.say("还没设置 DeepSeek Key，右键「设置 Key」先填一下~")
+            return
+        try:
+            r = requests.get(
+                "https://api.deepseek.com/user/balance",
+                timeout=10,
+                headers={
+                    "Accept": "application/json",
+                    "Authorization": f"Bearer {key}"
+                }
+            )
+            if r.status_code != 200:
+                self.say(f"查询失败，状态码 {r.status_code}")
+                return
+            data = r.json()
+            if not data.get("is_available"):
+                self.say("余额不足啦，去 platform.deepseek.com 充值先~")
+                return
+            infos = data.get("balance_infos", [])
+            if not infos:
+                self.say("没查到余额信息")
+                return
+            info = infos[0]
+            total = info.get("total_balance", "0.00")
+            currency = info.get("currency", "CNY")
+            sym = "¥" if currency == "CNY" else ("$" if currency == "USD" else "")
+            self.last_line = ""
+            self.say(f"💰 余额 {sym}{total} {currency}")
+        except Exception as e:
+            print("余额查询异常:", e)
+            self.say("查询出错，可能是网络或 Key 不对")
     
 
     def _build_menu(self):
@@ -902,6 +937,7 @@ class PetWindow(QWidget):
             a.triggered.connect(lambda _, v=mult: self.set_size(v))
         m.addAction("设置 Key", self._set_key_dialog)
         m.addAction("查看天气", self._get_weather)
+        m.addAction("查看余额", self._check_balance)
         m.addSeparator()
         m.addAction("显示/隐藏", self.toggle_visible)
         m.addAction("回到屏幕内", self.snap_into_screen)
