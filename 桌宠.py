@@ -59,7 +59,7 @@ CONFIG_PATH = os.path.join(APP_DIR, "config.json")
 
 BUBBLE_H = 56
 MARGIN = 4
-SIZE_LEVELS = {"小": 0.55, "中": 0.7, "大": 0.9}
+SIZE_LEVELS = {"超小": 0.22, "迷你": 0.35, "小": 0.55, "中": 0.7, "大": 0.9}
 SPEED = 380.0
 TICK = 20
 
